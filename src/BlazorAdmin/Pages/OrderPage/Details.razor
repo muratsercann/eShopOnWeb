@@ -1,0 +1,138 @@
+﻿@inject ILogger<Details> Logger
+@inject IJSRuntime JSRuntime
+@inject IOrderService OrderService
+
+@inherits BlazorAdmin.Helpers.BlazorComponent
+
+@namespace BlazorAdmin.Pages.OrderPage
+
+<div class="modal @_modalClass" tabindex="-1" role="dialog" style="display:@_modalDisplay">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Order Details </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+                @if (_order == null)
+                {
+                    <Spinner></Spinner>
+                }
+                else
+                {
+                    <div class="container modal-container">
+                        
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-4 font-weight-bold">Order Number</div>
+                                <div class="col">: @_order.Id</div>
+
+                                <div class="w-100"></div>
+
+                                <div class="col-4 font-weight-bold">Buyer Id</div>
+                                <div class="col">: @_order.BuyerId</div>
+
+                                <div class="w-100"></div>
+
+                                <div class="col-4 font-weight-bold">Order Date</div>
+                                <div class="col">: @_order.Date.Date.ToShortDateString()</div>
+
+                                <div class="w-100"></div>
+
+                                <div class="col-4 font-weight-bold">Order Status</div>
+                                <div class="col">: @_order.Status</div>
+
+                                <div class="w-100"></div>
+
+                                <div class="col-4 font-weight-bold">Shipping Adress</div>
+                                <div class="col">: @_order.ShipToAdress.Street, @_order.ShipToAdress.City, @_order.ShipToAdress.Country</div>
+
+                                <div class="w-100"></div>
+
+                                <div class="w-100"></div>
+                                <div class="col-12">
+                                    <div>
+                                        @for (int i = 0; i < _order.Items.Count; i++)
+                                        {
+                                            var item = _order.Items[i];
+                                            <br />
+                                            <div class="row">
+                                                <img class="col-4" src="@item.PictureUrl">
+                                                <div class="col">
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            @item.ProductName
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            $@item.UnitPrice.ToString("N2") x @item.Units
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </div>
+            <div class="modal-footer">
+                @if (_order != null)
+                {
+                    <div class="col text-left">
+                        <p><strong>Total Price :</strong> @_order.Total</p>
+                    </div>
+
+                }
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="Close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (_showDetailsModal)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+
+    private string _modalDisplay = "none;";
+    private string _modalClass = "";
+    private bool _showDetailsModal = false;
+    private OrderDetail _order = null;
+
+
+    public async Task Open(int id)
+    {
+
+        Logger.LogInformation("Now loading... /Order/Details/{Id}", id);
+
+        await new Css(JSRuntime).HideBodyOverflow();
+
+        _order = await OrderService.GetDetails(id);
+
+        _modalDisplay = "block;";
+        _modalClass = "Show";
+        _showDetailsModal = true;
+
+        StateHasChanged();
+    }
+
+    public async Task Close()
+    {
+        await new Css(JSRuntime).ShowBodyOverflow();
+
+        _modalDisplay = "none";
+        _modalClass = "";
+        _showDetailsModal = false;
+    }
+
+}

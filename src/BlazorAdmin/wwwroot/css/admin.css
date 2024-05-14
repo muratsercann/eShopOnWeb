@@ -242,3 +242,8 @@ a, .btn-link {
         display: block;
     }
 }
+
+.modal-container {
+    overflow: auto; 
+    max-height: 450px;
+}
